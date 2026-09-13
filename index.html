@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BA1 Génie Mécanique — EPFL (version web)</title>
+<style>
+  :root {
+    --bg: #f5f6fb;
+    --card: #ffffff;
+    --text: #1a1d29;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --accent: #4f46e5;
+    --accent-light: #eef2ff;
+    --green: #22c55e;
+    --lime: #84cc16;
+    --yellow: #eab308;
+    --orange: #f97316;
+    --red: #ef4444;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding-bottom: 60px;
+  }
+  header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px 0 16px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  h1 {
+    margin: 0 0 4px 0;
+    font-size: 18px;
+  }
+  .subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  nav.mainnav {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+  }
+  nav.mainnav button {
+    background: none;
+    border: none;
+    padding: 9px 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  nav.mainnav button.active {
+    color: var(--accent);
+    border-bottom: 3px solid var(--accent);
+  }
+  nav.subnav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  nav.subnav button {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  nav.subnav button.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 18px 16px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .card h2 { margin: 0 0 10px 0; font-size: 15px; }
+  .card h3 { margin: 0 0 8px 0; font-size: 13.5px; }
+
+  /* header stat block */
+  .matiere-hero {
+    background: linear-gradient(135deg, var(--mat-color, var(--accent)), var(--mat-color2, #7c3aed));
+    color: white;
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .matiere-hero .code { font-size: 12px; opacity: 0.85; }
+  .matiere-hero h2 { color: white; font-size: 19px; margin: 2px 0 12px 0; }
+  .hero-stats { display: flex; gap: 20px; flex-wrap: wrap; }
+  .hero-stat-num { font-size: 22px; font-weight: 800; }
+  .hero-stat-label { font-size: 11px; opacity: 0.9; }
+  .hero-bar-bg { height: 8px; background: rgba(255,255,255,0.3); border-radius: 6px; margin-top: 12px; overflow: hidden; }
+  .hero-bar-fill { height: 100%; background: white; }
+
+  /* accordion series */
+  .serie-item {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    background: #fdfdfd;
+  }
+  .serie-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+  }
+  .serie-header .serie-num {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--accent-light); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 13px; flex-shrink: 0;
+  }
+  .serie-header .serie-info { flex: 1; min-width: 0; }
+  .serie-header .serie-title { font-weight: 700; font-size: 14px; }
+  .serie-header .serie-sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .serie-header .pct-badge {
+    font-size: 12px; font-weight: 800; padding: 4px 9px; border-radius: 20px;
+    color: white; flex-shrink: 0;
+  }
+  .serie-header .chevron { font-size: 12px; color: var(--muted); transition: transform 0.15s; }
+  .serie-item.open .chevron { transform: rotate(90deg); }
+  .serie-mini-bar-bg { height: 5px; background: #eee; border-radius: 4px; margin-top: 6px; overflow: hidden; }
+  .serie-mini-bar-fill { height: 100%; background: var(--accent); }
+
+  .serie-body { display: none; padding: 0 14px 14px 14px; border-top: 1px solid var(--border); }
+  .serie-item.open .serie-body { display: block; padding-top: 12px; }
+
+  .total-exos-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .total-exos-row label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .total-exos-row input {
+    width: 64px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px;
+  }
+
+  .exo-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .exo-row:last-child { border-bottom: none; }
+  .exo-check {
+    width: 26px; height: 26px; min-width: 26px; border-radius: 7px;
+    border: 2px solid var(--border); background: white; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 15px; color: white;
+    margin-top: 2px;
+  }
+  .exo-check.checked { background: var(--green); border-color: var(--green); }
+  .exo-main { flex: 1; min-width: 0; }
+  .exo-label { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .diff-mini { display: flex; gap: 4px; margin-bottom: 6px; }
+  .diff-mini button {
+    width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border);
+    background: #fafafa; font-size: 12px; font-weight: 700; color: var(--muted); cursor: pointer;
+  }
+  .diff-mini button.sel-1.selected { background: var(--green); color: white; border-color: var(--green); }
+  .diff-mini button.sel-2.selected { background: var(--lime); color: white; border-color: var(--lime); }
+  .diff-mini button.sel-3.selected { background: var(--yellow); color: white; border-color: var(--yellow); }
+  .diff-mini button.sel-4.selected { background: var(--orange); color: white; border-color: var(--orange); }
+  .diff-mini button.sel-5.selected { background: var(--red); color: white; border-color: var(--red); }
+  .erreur-input {
+    width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border);
+    font-size: 12.5px; background: #fafafa;
+  }
+
+  /* exams */
+  .exam-item {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    background: #fdfdfd;
+  }
+  .exam-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .exam-name { font-weight: 700; font-size: 14px; }
+  .exam-year { font-size: 11.5px; color: var(--muted); }
+  .exam-link { font-size: 12px; color: var(--accent); text-decoration: none; word-break: break-all; }
+  .exam-notes { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+  .del-btn { background: none; border: none; color: var(--muted); font-size: 17px; cursor: pointer; padding: 2px 6px; }
+  .del-btn:hover { color: var(--red); }
+
+  label.form-label { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted); margin: 10px 0 4px 0; }
+  input[type="text"], input[type="number"], input[type="url"] {
+    width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--border); font-size: 13.5px; background: #fafafa;
+  }
+  .primary-btn {
+    margin-top: 14px; width: 100%; padding: 11px; border: none; border-radius: 10px;
+    background: var(--accent); color: white; font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+  .resource-box {
+    background: var(--accent-light); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; font-size: 12.5px;
+  }
+  .resource-box a { color: var(--accent); font-weight: 600; text-decoration: none; }
+  .resource-box ul { margin: 6px 0 0 0; padding-left: 18px; }
+  .resource-box li { margin-bottom: 4px; }
+
+  /* recap */
+  .stat-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13.5px; }
+  .stat-row .lbl { font-weight: 700; }
+  .bar-bg { height: 8px; background: #eee; border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
+  .bar-fill { height: 100%; }
+  .difficult-item {
+    border-left: 4px solid var(--red);
+    background: #fdfdfd; border: 1px solid var(--border); border-left: 4px solid var(--red);
+    border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+  }
+  .difficult-item .dtitle { font-weight: 700; font-size: 13.5px; }
+  .difficult-item .dmeta { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+  .difficult-item .derr { font-size: 12px; margin-top: 5px; font-style: italic; color: #7c2d12; }
+
+  /* conseils */
+  .conseil-block { margin-bottom: 16px; }
+  .conseil-block h3 { color: var(--accent); font-size: 14.5px; }
+  .conseil-block p, .conseil-block li { font-size: 13.5px; line-height: 1.55; }
+  .conseil-block ul { padding-left: 20px; margin: 6px 0; }
+
+  .empty { text-align: center; color: var(--muted); padding: 24px 10px; font-size: 13px; }
+  .loading { text-align: center; padding: 40px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎓 BA1 Génie Mécanique</h1>
+  <div class="subtitle">EPFL — suivi de tes séries, examens et progression</div>
+  <nav class="mainnav" id="mainnav"></nav>
+</header>
+
+<main id="app">
+  <div class="loading">Chargement...</div>
+</main>
+
+<script>
+// ---------- CONFIG ----------
+const MATIERES = [
+  { id: "analyse", nom: "Analyse I", code: "MATH-101", color1: "#4f46e5", color2: "#7c3aed",
+    lien: "https://edu.epfl.ch/studyplan/fr/propedeutique/genie-mecanique/coursebook/analyse-i-MATH-101-C" },
+  { id: "algebre", nom: "Algèbre linéaire", code: "MATH-111", color1: "#0891b2", color2: "#0e7490",
+    lien: "https://edu.epfl.ch/studyplan/fr/propedeutique/genie-mecanique/coursebook/algebre-lineaire-MATH-111-C" },
+  { id: "physique", nom: "Physique générale : mécanique", code: "PHYS-101", color1: "#db2777", color2: "#9d174d",
+    lien: "https://edu.epfl.ch/studyplan/fr/propedeutique/genie-mecanique/coursebook/physique-generale-mecanique-PHYS-101-D" },
+  { id: "construction", nom: "Construction mécanique I", code: "ME-101", color1: "#ea580c", color2: "#c2410c",
+    lien: "https://edu.epfl.ch/studyplan/fr/propedeutique/genie-mecanique/coursebook/construction-mecanique-i-pour-gm-ME-101" },
+  { id: "materiaux", nom: "Matériaux : de la chimie aux propriétés", code: "MSE-101", color1: "#16a34a", color2: "#15803d",
+    lien: "https://edu.epfl.ch/studyplan/fr/propedeutique/genie-mecanique/coursebook/materiaux-de-la-chimie-aux-proprietes-MSE-101-A" },
+  { id: "lois", nom: "Lois d'échelle pour ingénieur", code: "ME-108", color1: "#7c3aed", color2: "#5b21b6",
+    lien: "https://edu.epfl.ch/studyplan/fr/propedeutique/genie-mecanique/coursebook/lois-d-echelle-pour-ingenieur-gm-ME-108" }
+];
+const NB_SERIES = 14;
+const DIFF_COLORS = {1:"#22c55e",2:"#84cc16",3:"#eab308",4:"#f97316",5:"#ef4444"};
+const DIFF_LABELS = {1:"Très facile",2:"Facile",3:"Moyen",4:"Difficile",5:"Très difficile"};
+
+// ---------- STATE ----------
+let seriesData = {};   // { matiereId: { "1": {total:5, exos:{ "1":{fait,difficulte,erreurs}, ... } }, ... } }
+let examsData = {};    // { matiereId: [ {id, annee, nom, lien, difficulte, notes} ] }
+let loaded = false;
+let currentView = { type: "matiere", matiereId: MATIERES[0].id, subTab: "series" };
+let openSerie = null; // numero de série ouverte (accordion), reset par matière
+let errorMsg = "";
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+function ensureMatiereSeries(matId) {
+  if (!seriesData[matId]) seriesData[matId] = {};
+  for (let i = 1; i <= NB_SERIES; i++) {
+    if (!seriesData[matId][i]) seriesData[matId][i] = { total: 5, exos: {} };
+  }
+}
+function ensureExo(matId, serieNum, exoIdx) {
+  const s = seriesData[matId][serieNum];
+  if (!s.exos[exoIdx]) s.exos[exoIdx] = { fait: false, difficulte: null, erreurs: "" };
+  return s.exos[exoIdx];
+}
+
+// ---------- STORAGE (localStorage du navigateur) ----------
+const LS_KEY_SERIES = "epfl_ba1_gm_series_data";
+const LS_KEY_EXAMS = "epfl_ba1_gm_exams_data";
+
+async function loadData() {
+  try {
+    const raw = localStorage.getItem(LS_KEY_SERIES);
+    seriesData = raw ? JSON.parse(raw) : {};
+  } catch(e) { seriesData = {}; }
+  try {
+    const raw = localStorage.getItem(LS_KEY_EXAMS);
+    examsData = raw ? JSON.parse(raw) : {};
+  } catch(e) { examsData = {}; }
+  MATIERES.forEach(m => { ensureMatiereSeries(m.id); if (!examsData[m.id]) examsData[m.id] = []; });
+  loaded = true;
+  render();
+}
+async function saveSeries() {
+  try { localStorage.setItem(LS_KEY_SERIES, JSON.stringify(seriesData)); }
+  catch(e) { errorMsg = "Erreur lors de la sauvegarde des séries (stockage local plein ou bloqué)."; }
+}
+async function saveExams() {
+  try { localStorage.setItem(LS_KEY_EXAMS, JSON.stringify(examsData)); }
+  catch(e) { errorMsg = "Erreur lors de la sauvegarde des examens (stockage local plein ou bloqué)."; }
+}
+
+// ---------- EXPORT / IMPORT (sauvegarde manuelle de secours) ----------
+function exportData() {
+  const blob = new Blob([JSON.stringify({ seriesData, examsData }, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "sauvegarde-ba1-gm.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importDataFromFile(file) {
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (parsed.seriesData) seriesData = parsed.seriesData;
+      if (parsed.examsData) examsData = parsed.examsData;
+      MATIERES.forEach(m => { ensureMatiereSeries(m.id); if (!examsData[m.id]) examsData[m.id] = []; });
+      await saveSeries();
+      await saveExams();
+      render();
+    } catch(err) {
+      errorMsg = "Le fichier importé n'est pas valide.";
+      render();
+    }
+  };
+  reader.readAsText(file);
+}
+
+function escapeHtml(str) {
+  const d = document.createElement("div");
+  d.textContent = str == null ? "" : str;
+  return d.innerHTML;
+}
+
+// ---------- COMPUTATIONS ----------
+function serieStats(matId, num) {
+  const s = seriesData[matId][num];
+  const total = s.total || 0;
+  let done = 0, diffSum = 0, diffCount = 0;
+  for (let i = 1; i <= total; i++) {
+    const e = s.exos[i];
+    if (e && e.fait) done++;
+    if (e && e.difficulte) { diffSum += e.difficulte; diffCount++; }
+  }
+  const pct = total > 0 ? Math.round((done/total)*100) : 0;
+  const avgDiff = diffCount > 0 ? diffSum/diffCount : null;
+  return { total, done, pct, avgDiff };
+}
+function matiereStats(matId) {
+  let totalExos = 0, doneExos = 0;
+  for (let n = 1; n <= NB_SERIES; n++) {
+    const st = serieStats(matId, n);
+    totalExos += st.total; doneExos += st.done;
+  }
+  const pct = totalExos > 0 ? Math.round((doneExos/totalExos)*100) : 0;
+  return { totalExos, doneExos, pct };
+}
+function pctColor(pct) {
+  if (pct >= 80) return "var(--green)";
+  if (pct >= 50) return "var(--yellow)";
+  if (pct >= 20) return "var(--orange)";
+  return "var(--red)";
+}
+
+// ---------- RENDER ----------
+const app = document.getElementById("app");
+const mainnav = document.getElementById("mainnav");
+
+function buildNav() {
+  let html = "";
+  MATIERES.forEach(m => {
+    const active = currentView.type === "matiere" && currentView.matiereId === m.id;
+    html += `<button data-nav="matiere:${m.id}" class="${active?'active':''}">${escapeHtml(m.nom.split(':')[0].split(' ').slice(0,2).join(' '))}</button>`;
+  });
+  html += `<button data-nav="recap" class="${currentView.type==='recap'?'active':''}">📊 Récap</button>`;
+  html += `<button data-nav="conseils" class="${currentView.type==='conseils'?'active':''}">💡 Conseils</button>`;
+  mainnav.innerHTML = html;
+  mainnav.querySelectorAll("button").forEach(b => {
+    b.onclick = () => {
+      const val = b.dataset.nav;
+      if (val === "recap") currentView = { type: "recap" };
+      else if (val === "conseils") currentView = { type: "conseils" };
+      else {
+        const matId = val.split(":")[1];
+        currentView = { type: "matiere", matiereId: matId, subTab: "series" };
+        openSerie = null;
+      }
+      render();
+    };
+  });
+}
+
+function render() {
+  buildNav();
+  if (!loaded) { app.innerHTML = '<div class="loading">Chargement...</div>'; return; }
+  let html = "";
+  if (errorMsg) html += `<div class="card" style="border-color:#fecaca;background:#fef2f2;color:#991b1b;font-size:13px;">${errorMsg}</div>`;
+
+  if (currentView.type === "matiere") html += renderMatiereView();
+  else if (currentView.type === "recap") html += renderRecap();
+  else html += renderConseils();
+
+  app.innerHTML = html;
+  attachHandlers();
+}
+
+function renderMatiereView() {
+  const m = MATIERES.find(x => x.id === currentView.matiereId);
+  const stats = matiereStats(m.id);
+  let html = `<div class="matiere-hero" style="--mat-color:${m.color1};--mat-color2:${m.color2};">
+    <div class="code">${m.code}</div>
+    <h2>${escapeHtml(m.nom)}</h2>
+    <div class="hero-stats">
+      <div><div class="hero-stat-num">${stats.pct}%</div><div class="hero-stat-label">complété</div></div>
+      <div><div class="hero-stat-num">${stats.doneExos}/${stats.totalExos}</div><div class="hero-stat-label">exercices faits</div></div>
+    </div>
+    <div class="hero-bar-bg"><div class="hero-bar-fill" style="width:${stats.pct}%"></div></div>
+  </div>`;
+
+  html += `<nav class="subnav">
+    <button data-sub="series" class="${currentView.subTab==='series'?'active':''}">Séries d'exercices</button>
+    <button data-sub="exams" class="${currentView.subTab==='exams'?'active':''}">Examens</button>
+  </nav>`;
+
+  if (currentView.subTab === "series") html += renderSeries(m);
+  else html += renderExams(m);
+
+  return html;
+}
+
+function renderSeries(m) {
+  let html = "";
+  for (let n = 1; n <= NB_SERIES; n++) {
+    const st = serieStats(m.id, n);
+    const isOpen = openSerie === n;
+    const color = pctColor(st.pct);
+    html += `<div class="serie-item ${isOpen?'open':''}">
+      <div class="serie-header" data-toggle-serie="${n}">
+        <div class="serie-num">S${n}</div>
+        <div class="serie-info">
+          <div class="serie-title">Série ${n} ${st.avgDiff ? `<span style="font-weight:600;color:${DIFF_COLORS[Math.round(st.avgDiff)]};font-size:11.5px;">· ${DIFF_LABELS[Math.round(st.avgDiff)]}</span>` : ''}</div>
+          <div class="serie-sub">${st.done}/${st.total} exercices faits</div>
+          <div class="serie-mini-bar-bg"><div class="serie-mini-bar-fill" style="width:${st.pct}%;background:${color};"></div></div>
+        </div>
+        <div class="pct-badge" style="background:${color};">${st.pct}%</div>
+        <div class="chevron">▶</div>
+      </div>
+      <div class="serie-body">
+        ${renderSerieBody(m.id, n)}
+      </div>
+    </div>`;
+  }
+  return html;
+}
+
+function renderSerieBody(matId, num) {
+  const s = seriesData[matId][num];
+  let html = `<div class="total-exos-row">
+    <label>Nombre d'exercices dans cette série :</label>
+    <input type="number" min="1" max="30" value="${s.total}" data-total-input="${matId}:${num}">
+  </div>`;
+  for (let i = 1; i <= s.total; i++) {
+    const e = ensureExo(matId, num, i);
+    html += `<div class="exo-row">
+      <div class="exo-check ${e.fait?'checked':''}" data-toggle-exo="${matId}:${num}:${i}">${e.fait?'✓':''}</div>
+      <div class="exo-main">
+        <div class="exo-label">Exercice ${i}</div>
+        <div class="diff-mini">
+          ${[1,2,3,4,5].map(d => `<button type="button" class="sel-${d} ${e.difficulte===d?'selected':''}" data-set-diff="${matId}:${num}:${i}:${d}">${d}</button>`).join("")}
+        </div>
+        <input type="text" class="erreur-input" placeholder="Erreurs commises / points à revoir..." value="${escapeHtml(e.erreurs)}" data-set-erreur="${matId}:${num}:${i}">
+      </div>
+    </div>`;
+  }
+  return html;
+}
+
+function renderExams(m) {
+  const list = examsData[m.id] || [];
+  let html = `<div class="resource-box">
+    💡 Les corrigés officiels d'examens sont en général distribués sur Moodle pendant le semestre où tu suis le cours (accès réservé aux étudiant·es inscrit·es). Deux points de départ fiables :
+    <ul>
+      <li><a href="${m.lien}" target="_blank" rel="noopener">Page officielle du cours ${escapeHtml(m.code)}</a> (plan, horaires, supports)</li>
+      <li><a href="https://coaching.epfl.ch/sections/gm/" target="_blank" rel="noopener">Coaching GM (AGEPoly)</a> — les coachs de section ont souvent des annales et peuvent t'orienter</li>
+    </ul>
+    Ajoute ci-dessous les examens que tu as toi-même (liens, fichiers déjà en ta possession) pour les suivre.
+  </div>`;
+
+  html += `<div class="card">
+    <h2>Ajouter un examen</h2>
+    <label class="form-label">Année / session</label>
+    <input type="text" id="exam-annee" placeholder="Ex: Hiver 2024">
+    <label class="form-label">Nom</label>
+    <input type="text" id="exam-nom" placeholder="Ex: Examen final">
+    <label class="form-label">Lien (optionnel)</label>
+    <input type="url" id="exam-lien" placeholder="https://...">
+    <label class="form-label">Niveau de difficulté</label>
+    <div class="diff-mini" id="exam-diff-picker">
+      ${[1,2,3,4,5].map(d => `<button type="button" class="sel-${d}" data-exam-diff="${d}">${d}</button>`).join("")}
+    </div>
+    <label class="form-label">Notes</label>
+    <input type="text" id="exam-notes" placeholder="Remarques, chapitres tombés...">
+    <button class="primary-btn" id="btn-add-exam">Ajouter l'examen</button>
+  </div>`;
+
+  if (list.length === 0) {
+    html += `<div class="empty">Aucun examen ajouté pour cette matière.</div>`;
+  } else {
+    list.slice().sort((a,b) => (b.annee||"").localeCompare(a.annee||"")).forEach(ex => {
+      html += `<div class="exam-item">
+        <div class="exam-top">
+          <div>
+            <div class="exam-name">${escapeHtml(ex.nom)}</div>
+            <div class="exam-year">${escapeHtml(ex.annee)}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="background:${DIFF_COLORS[ex.difficulte]||'#ccc'};color:white;font-size:11px;font-weight:800;padding:3px 8px;border-radius:20px;">${ex.difficulte ? DIFF_LABELS[ex.difficulte] : 'Non noté'}</span>
+            <button class="del-btn" data-del-exam="${m.id}:${ex.id}">✕</button>
+          </div>
+        </div>
+        ${ex.lien ? `<a class="exam-link" href="${escapeHtml(ex.lien)}" target="_blank" rel="noopener">${escapeHtml(ex.lien)}</a>` : ''}
+        ${ex.notes ? `<div class="exam-notes">${escapeHtml(ex.notes)}</div>` : ''}
+      </div>`;
+    });
+  }
+  return html;
+}
+
+function renderRecap() {
+  let totalExosAll = 0, doneExosAll = 0;
+  const matPcts = MATIERES.map(m => { const s = matiereStats(m.id); totalExosAll += s.totalExos; doneExosAll += s.doneExos; return {m, s}; });
+  const globalPct = totalExosAll > 0 ? Math.round((doneExosAll/totalExosAll)*100) : 0;
+
+  let html = `<div class="card" style="background:var(--accent-light);">
+    <h2>💾 Sauvegarde de tes données</h2>
+    <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px 0;">Tes données restent stockées dans ce navigateur uniquement. Télécharge un fichier de sauvegarde de temps en temps (et avant de changer d'appareil ou de vider ton navigateur) pour ne rien perdre.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="primary-btn" style="margin-top:0;flex:1;" id="btn-export">⬇️ Exporter mes données</button>
+      <button class="primary-btn" style="margin-top:0;flex:1;background:white;color:var(--accent);border:1px solid var(--accent);" id="btn-import-trigger">⬆️ Importer une sauvegarde</button>
+    </div>
+    <input type="file" id="input-import" accept="application/json" style="display:none;">
+  </div>`;
+
+  html += `<div class="card">
+    <h2>🚀 Niveau d'avancement global</h2>
+    <div class="stat-row"><span class="lbl">Progression totale</span><span>${doneExosAll}/${totalExosAll} exercices — ${globalPct}%</span></div>
+    <div class="bar-bg"><div class="bar-fill" style="width:${globalPct}%;background:${pctColor(globalPct)};"></div></div>
+  </div>`;
+
+  html += `<div class="card"><h2>Par matière</h2>`;
+  matPcts.forEach(({m,s}) => {
+    html += `<div class="stat-row"><span class="lbl">${escapeHtml(m.nom)}</span><span>${s.doneExos}/${s.totalExos} (${s.pct}%)</span></div>
+    <div class="bar-bg"><div class="bar-fill" style="width:${s.pct}%;background:${m.color1};"></div></div>`;
+  });
+  html += `</div>`;
+
+  // Exercices difficiles / avec erreurs
+  let difficiles = [];
+  MATIERES.forEach(m => {
+    for (let n = 1; n <= NB_SERIES; n++) {
+      const s = seriesData[m.id][n];
+      for (let i = 1; i <= s.total; i++) {
+        const e = s.exos[i];
+        if (e && ((e.difficulte && e.difficulte >= 4) || (e.erreurs && e.erreurs.trim()))) {
+          difficiles.push({ matiere: m.nom, serie: n, exo: i, difficulte: e.difficulte, erreurs: e.erreurs, fait: e.fait });
+        }
+      }
+    }
+  });
+  difficiles.sort((a,b) => (b.difficulte||0) - (a.difficulte||0));
+
+  html += `<div class="card"><h2>⚠️ Exercices où tu as eu du mal</h2>`;
+  if (difficiles.length === 0) {
+    html += `<div class="empty">Rien à signaler pour l'instant — note tes exercices difficiles depuis chaque série.</div>`;
+  } else {
+    difficiles.forEach(d => {
+      html += `<div class="difficult-item">
+        <div class="dtitle">${escapeHtml(d.matiere)} — Série ${d.serie}, Exercice ${d.exo}</div>
+        <div class="dmeta">
+          ${d.difficulte ? `<span style="color:${DIFF_COLORS[d.difficulte]};font-weight:700;">${DIFF_LABELS[d.difficulte]}</span> · ` : ''}
+          ${d.fait ? '✅ Fait' : '⏳ Pas encore fait'}
+        </div>
+        ${d.erreurs ? `<div class="derr">✏️ ${escapeHtml(d.erreurs)}</div>` : ''}
+      </div>`;
+    });
+  }
+  html += `</div>`;
+
+  // examens overview
+  let allExams = [];
+  MATIERES.forEach(m => (examsData[m.id]||[]).forEach(ex => allExams.push({...ex, matiere: m.nom})));
+  html += `<div class="card"><h2>📝 Examens répertoriés</h2>`;
+  if (allExams.length === 0) {
+    html += `<div class="empty">Aucun examen ajouté pour l'instant.</div>`;
+  } else {
+    allExams.sort((a,b) => (b.difficulte||0)-(a.difficulte||0)).forEach(ex => {
+      html += `<div class="stat-row"><span>${escapeHtml(ex.matiere)} — ${escapeHtml(ex.nom)} (${escapeHtml(ex.annee)})</span>
+      <span style="color:${DIFF_COLORS[ex.difficulte]||'#999'};font-weight:700;">${ex.difficulte ? DIFF_LABELS[ex.difficulte] : '—'}</span></div>`;
+    });
+  }
+  html += `</div>`;
+
+  return html;
+}
+
+function renderConseils() {
+  return `
+  <div class="card conseil-block">
+    <h3>📅 Le semestre en un coup d'œil</h3>
+    <p>Les 6 matières de ton bloc 1 (Analyse I, Algèbre linéaire, Physique générale : mécanique, Construction mécanique I, Matériaux et Lois d'échelle) s'étalent sur 14 semaines de cours, avec tous les examens écrits regroupés en <strong>session d'hiver</strong> (mi-décembre à fin janvier). Comme tout tombe à la même période, l'enjeu numéro 1 du semestre est de ne jamais accumuler de retard sur les séries.</p>
+  </div>
+
+  <div class="card conseil-block">
+    <h3>🗂️ S'organiser semaine par semaine</h3>
+    <ul>
+      <li>Fais la série de la semaine <strong>avant</strong> la séance d'exercices suivante, même si c'est fait à moitié — ça rend la séance beaucoup plus utile.</li>
+      <li>Utilise cet outil pour cocher chaque exercice et noter tes erreurs à chaud : c'est cette liste qui deviendra ta fiche de révision avant les examens.</li>
+      <li>Bloque des créneaux fixes dans ta semaine pour chaque matière plutôt que de tout faire "quand t'as le temps".</li>
+      <li>Ne laisse jamais une série de plus de 2 semaines de retard — le rythme EPFL est rapide et le retard s'accumule vite avec 6 branches en parallèle.</li>
+    </ul>
+  </div>
+
+  <div class="card conseil-block">
+    <h3>🧠 Pendant le semestre</h3>
+    <ul>
+      <li>Refais les exercices que tu as ratés une deuxième fois, quelques semaines plus tard, sans regarder la correction.</li>
+      <li>Forme un petit groupe de travail (3-4 personnes) : comparer les méthodes de résolution aide énormément en Analyse/Algèbre.</li>
+      <li>Va aux séances d'exercices avec des questions précises plutôt que d'y aller "pour voir".</li>
+      <li>Pour Construction mécanique et Matériaux, relis le poly régulièrement : ce sont des matières où le par-cœur bien structuré fait une vraie différence.</li>
+    </ul>
+  </div>
+
+  <div class="card conseil-block">
+    <h3>📝 Préparer la session d'examens</h3>
+    <ul>
+      <li>Utilise l'onglet "Récap" de cet outil pour repérer tes points faibles réels (pas ceux que tu crois avoir) et concentre tes dernières semaines de révision dessus.</li>
+      <li>Fais un maximum d'examens des années précédentes en conditions réelles (temps limité, sans notes) plutôt que de "juste relire" — c'est la meilleure préparation aux QCM et exercices type EPFL.</li>
+      <li>Avec 6 examens rapprochés, planifie un ordre de révision : commence par les matières où tu as le plus d'exercices difficiles non résolus.</li>
+      <li>Dors correctement avant chaque examen — la fatigue coûte plus de points qu'un chapitre non révisé.</li>
+    </ul>
+  </div>
+
+  <div class="card conseil-block">
+    <h3>🤝 Ressources et aide</h3>
+    <ul>
+      <li><a href="https://coaching.epfl.ch/sections/gm/" target="_blank" rel="noopener">Coaching GM (AGEPoly)</a> — des étudiant·es plus avancé·es de ta section pour du soutien académique et moral.</li>
+      <li>Les assistant·es des séances d'exercices : n'hésite pas à leur poser des questions par email en dehors des séances.</li>
+      <li>Si tu sens que tu décroches dans une matière, contacte ton/ta délégué·e de classe ou le service d'accompagnement de l'EPFL rapidement plutôt que d'attendre la session.</li>
+    </ul>
+  </div>`;
+}
+
+// ---------- HANDLERS ----------
+function attachHandlers() {
+  const exportBtn = document.getElementById("btn-export");
+  if (exportBtn) exportBtn.onclick = exportData;
+  const importTrigger = document.getElementById("btn-import-trigger");
+  const importInput = document.getElementById("input-import");
+  if (importTrigger && importInput) {
+    importTrigger.onclick = () => importInput.click();
+    importInput.onchange = () => { if (importInput.files[0]) importDataFromFile(importInput.files[0]); };
+  }
+
+  document.querySelectorAll("[data-sub]").forEach(b => {
+    b.onclick = () => { currentView.subTab = b.dataset.sub; render(); };
+  });
+
+  document.querySelectorAll("[data-toggle-serie]").forEach(el => {
+    el.onclick = () => {
+      const n = parseInt(el.dataset.toggleSerie);
+      openSerie = openSerie === n ? null : n;
+      render();
+    };
+  });
+
+  document.querySelectorAll("[data-total-input]").forEach(el => {
+    el.onchange = async () => {
+      const [matId, num] = el.dataset.totalInput.split(":");
+      let v = parseInt(el.value);
+      if (isNaN(v) || v < 1) v = 1;
+      if (v > 30) v = 30;
+      seriesData[matId][num].total = v;
+      await saveSeries();
+      render();
+    };
+  });
+
+  document.querySelectorAll("[data-toggle-exo]").forEach(el => {
+    el.onclick = async () => {
+      const [matId, num, idx] = el.dataset.toggleExo.split(":");
+      const e = ensureExo(matId, num, idx);
+      e.fait = !e.fait;
+      await saveSeries();
+      render();
+    };
+  });
+
+  document.querySelectorAll("[data-set-diff]").forEach(el => {
+    el.onclick = async () => {
+      const [matId, num, idx, d] = el.dataset.setDiff.split(":");
+      const e = ensureExo(matId, num, idx);
+      e.difficulte = e.difficulte === parseInt(d) ? null : parseInt(d);
+      await saveSeries();
+      render();
+    };
+  });
+
+  document.querySelectorAll("[data-set-erreur]").forEach(el => {
+    el.onchange = async () => {
+      const [matId, num, idx] = el.dataset.setErreur.split(":");
+      const e = ensureExo(matId, num, idx);
+      e.erreurs = el.value;
+      await saveSeries();
+    };
+  });
+
+  // exams
+  let selectedExamDiff = null;
+  document.querySelectorAll("[data-exam-diff]").forEach(el => {
+    el.onclick = () => {
+      selectedExamDiff = selectedExamDiff === parseInt(el.dataset.examDiff) ? null : parseInt(el.dataset.examDiff);
+      document.querySelectorAll("[data-exam-diff]").forEach(b => b.classList.remove("selected"));
+      if (selectedExamDiff) el.classList.add("selected");
+    };
+  });
+  const addExamBtn = document.getElementById("btn-add-exam");
+  if (addExamBtn) {
+    addExamBtn.onclick = async () => {
+      const nom = document.getElementById("exam-nom").value.trim();
+      const annee = document.getElementById("exam-annee").value.trim();
+      const lien = document.getElementById("exam-lien").value.trim();
+      const notes = document.getElementById("exam-notes").value.trim();
+      if (!nom) { document.getElementById("exam-nom").focus(); return; }
+      const matId = currentView.matiereId;
+      examsData[matId].push({ id: uid(), nom, annee, lien, difficulte: selectedExamDiff, notes });
+      await saveExams();
+      render();
+    };
+  }
+  document.querySelectorAll("[data-del-exam]").forEach(el => {
+    el.onclick = async () => {
+      const [matId, id] = el.dataset.delExam.split(":");
+      examsData[matId] = examsData[matId].filter(e => e.id !== id);
+      await saveExams();
+      render();
+    };
+  });
+}
+
+loadData();
+</script>
+
+</body>
+</html>
